@@ -1,0 +1,202 @@
+/* ------------------------------------------------------------------
+   Experience: a road with milestone markers.
+------------------------------------------------------------------ */
+
+.road {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2.5rem, 5vw, 4rem);
+  padding-left: 44px;
+}
+
+/* The road itself: solid edge with dashed centre markings */
+.road::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: var(--border);
+}
+
+.road::after {
+  content: '';
+  position: absolute;
+  left: 11.5px;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--accent-line) 0 10px,
+    transparent 10px 22px
+  );
+}
+
+.road-stop {
+  position: relative;
+}
+
+.road-marker {
+  position: absolute;
+  left: -44px;
+  top: 4px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  z-index: 1;
+}
+
+.road-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.road-period {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.road-title {
+  margin-top: 6px;
+  font-size: clamp(1.8rem, 3.2vw, 2.7rem);
+  font-weight: 700;
+}
+
+.road-org {
+  margin-top: 6px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.road-summary {
+  margin-top: 12px;
+  max-width: 60ch;
+  font-size: 0.98rem;
+  color: var(--text);
+}
+
+.road-bullets {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 66ch;
+}
+
+.road-bullets li {
+  position: relative;
+  padding-left: 18px;
+  font-size: 0.92rem;
+  color: var(--text-muted);
+}
+
+.road-bullets li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 7px;
+  height: 1px;
+  background: var(--accent);
+}
+
+.road-stack {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.road-stack li {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  border-radius: var(--radius-sm);
+  padding: 4px 9px;
+}
+
+/* ---------------- Education ---------------- */
+
+.education {
+  margin-top: clamp(3.5rem, 7vw, 5.5rem);
+  padding-top: clamp(1.75rem, 3vw, 2.5rem);
+  border-top: 1px solid var(--border);
+}
+
+.education-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+}
+
+.education-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem 2.5rem;
+}
+
+.education-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.education-date {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text-faint);
+}
+
+.education-name {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.education-org {
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+
+/* ---------------- Responsive ---------------- */
+
+@media (max-width: 640px) {
+  .road {
+    padding-left: 34px;
+  }
+
+  .road-marker {
+    left: -34px;
+    width: 22px;
+    height: 22px;
+  }
+
+  .road::before,
+  .road::after {
+    left: 10px;
+  }
+
+  .road::after {
+    left: 10.5px;
+  }
+
+  .education-list {
+    grid-template-columns: 1fr;
+  }
+}

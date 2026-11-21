@@ -1,0 +1,218 @@
+/* ------------------------------------------------------------------
+   Mountain scene: fixed stage, sky, parallax layers, mist, content veil.
+   All colours arrive as CSS custom properties from sceneTheme.ts.
+   Theme swaps interpolate these registered variables (~1s); scroll haze
+   is applied separately via --haze-p with NO transition, so the two
+   never fight over the same property.
+------------------------------------------------------------------ */
+
+/* Theme-only palette colours are transitioned at the variable level. This
+   keeps far-layer colour-mix() fills free of CSS transitions: --haze-p is
+   rewritten every scroll frame, and a transition on the resulting fill would
+   restart each frame and flicker while the scroll spring settles. */
+@property --haze {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #d9e4ee;
+}
+@property --mtn-a {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #b5c4d4;
+}
+@property --mtn-b {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #7d93a8;
+}
+@property --mtn-c {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #4a5f74;
+}
+@property --ground {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #3d4f61;
+}
+@property --trees-far {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #4a5d6e;
+}
+@property --trees-mid {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #2c3b4a;
+}
+@property --trees-near {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #101720;
+}
+
+.scene {
+  /* Keep the fixed stage on one stable composited layer. Promoting every
+     nested parallax <g> instead makes Chrome churn dozens of layers while
+     the page scrolls, which shows up as blocky flicker. */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  contain: paint;
+  isolation: isolate;
+
+  transition:
+    --haze 1s linear,
+    --mtn-a 1s linear,
+    --mtn-b 1s linear,
+    --mtn-c 1s linear,
+    --ground 1s linear,
+    --trees-far 1s linear,
+    --trees-mid 1s linear,
+    --trees-near 1s linear;
+
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  overflow: hidden;
+  pointer-events: none;
+
+  /* --haze-p (0% at p=1 → 100% at p=0) is written from scroll on this root and
+     only tints the distant ridges/tree bands. Near art (rider, camp grove,
+     tent, foreground trees/ground) stays its true, dark colour at all times. */
+  --camp-ink: var(--camp);
+  --camp-foliage: var(--foliage);
+  --camp-trunk: var(--trunk);
+  --camp-tent: var(--tent);
+  /* Night: a cool indigo silhouette against the fire-lit air, with the chair
+     a touch lighter so it reads as its own object. Both come from the palette. */
+  --night-rider-ink: var(--rider-night);
+  --night-chair-ink: var(--chair-night);
+  /* Ember-warmed logs instead of near-black wood. */
+  --fire-log: color-mix(in srgb, var(--fire) 28%, var(--camp-trunk));
+  /* Rider clothing: still dark, but warm enough to separate from the woods. */
+  --rider-jacket: color-mix(in srgb, var(--camp-accent) 42%, var(--camp-ink));
+  --rider-night-jacket: color-mix(in srgb, var(--fire) 45%, var(--night-rider-ink));
+  --rider-cap: color-mix(in srgb, var(--fire-core) 34%, var(--camp-ink));
+}
+
+.scene-art {
+  position: absolute;
+  inset: 0;
+}
+
+.scene-art svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Theme colour transitions (~1s as per spec). */
+.scene-sky-rect {
+  fill: url(#scene-sky-grad);
+}
+
+.scene-sky-grad stop,
+.scene-sun-glow-grad stop,
+.scene-mist-grad stop,
+.scene-fog-grad stop,
+.scene-camp-tree-grad stop {
+  transition: stop-color 1s linear;
+}
+
+.scene-sun {
+  transition: transform 1s var(--ease);
+}
+
+.scene-sun-disc {
+  fill: var(--sun);
+  transition: fill 1s linear;
+}
+
+.scene-sun-glow {
+  fill: url(#scene-sun-glow-grad);
+}
+
+/* Atmospheric perspective: far layers are tinted toward --haze at p=0 and
+   reach their true palette colour at p=1. Colour changes, never opacity. */
+.scene-ridge-a path {
+  fill: color-mix(in srgb, var(--haze) calc(var(--haze-p, 0%) * 0.62), var(--mtn-a));
+}
+.scene-ridge-b path {
+  fill: color-mix(in srgb, var(--haze) calc(var(--haze-p, 0%) * 0.45), var(--mtn-b));
+}
+.scene-ridge-c path {
+  fill: color-mix(in srgb, var(--haze) calc(var(--haze-p, 0%) * 0.28), var(--mtn-c));
+}
+.scene-ground path {
+  fill: color-mix(in srgb, var(--haze) calc(var(--haze-p, 0%) * 0.15), var(--ground));
+}
+.scene-trees--far,
+.scene-trees--far .scene-tree-ground {
+  color: color-mix(in srgb, var(--haze) calc(var(--haze-p, 0%) * 0.42), var(--trees-far));
+  fill: color-mix(in srgb, var(--haze) calc(var(--haze-p, 0%) * 0.42), var(--trees-far));
+}
+.scene-trees--mid,
+.scene-trees--mid .scene-tree-ground {
+  color: color-mix(in srgb, var(--haze) calc(var(--haze-p, 0%) * 0.24), var(--trees-mid));
+  fill: color-mix(in srgb, var(--haze) calc(var(--haze-p, 0%) * 0.24), var(--trees-mid));
+}
+.scene-foreground-ground > path {
+  fill: var(--grass);
+}
+
+/* Foreground detail colours are theme-only, so a short fill transition is
+   safe. The haze-tinted ridges and tree bands get their smoothing from the
+   registered palette variables above instead — never from a fill transition. */
+.scene-foreground-ground path,
+.scene-foreground-ground ellipse {
+  transition: fill 0.4s linear;
+}
+
+/* Tree symbols inherit their layer's colour, so the color transition above
+   covers every <use>. The ground has no transform of its own: it is a child
+   of the single foreground group, so it always moves with the camp's feet. */
+
+/* Ambient mist drift (killed under prefers-reduced-motion by base.css). */
+.scene-mist {
+  animation: scene-mist-drift 26s ease-in-out infinite alternate;
+}
+
+.scene-mist > g:last-child {
+  animation: scene-mist-drift 34s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes scene-mist-drift {
+  from {
+    transform: translateX(-26px);
+  }
+  to {
+    transform: translateX(26px);
+  }
+}
+
+/* Soft wash between scene (z −2) and content (z ≥ 0) for readable text.
+   Bottom stays clearer so the camp reveal reads at the end of the page. */
+.scene-veil {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg) 58%, transparent) 0%,
+    color-mix(in srgb, var(--bg) 48%, transparent) 38%,
+    color-mix(in srgb, var(--bg) 44%, transparent) 68%,
+    color-mix(in srgb, var(--bg) 32%, transparent) 100%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-mist,
+  .scene-mist > g:last-child {
+    animation: none;
+  }
+}
+
+

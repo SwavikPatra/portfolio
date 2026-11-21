@@ -1,0 +1,128 @@
+/* ------------------------------------------------------------------
+   Ambient scene effects: stars, meteor shower, birds, clouds, mist,
+   fireflies, embers. Transform/opacity only; reduced-motion is handled
+   globally by base.css (animations collapse to a static end state).
+------------------------------------------------------------------ */
+
+/* Clouds: soft near-white blobs from the sun colour. */
+.scene-clouds ellipse {
+  fill: var(--sun);
+  opacity: 0.6;
+}
+
+.scene-cloud {
+  animation: scene-cloud-drift linear infinite alternate;
+}
+
+@keyframes scene-cloud-drift {
+  from {
+    transform: translateX(-70px);
+  }
+  to {
+    transform: translateX(70px);
+  }
+}
+
+/* Stars twinkle via opacity only — a few groups, not one layer per circle. */
+.scene-star-group {
+  animation: scene-star-twinkle ease-in-out infinite alternate;
+}
+
+@keyframes scene-star-twinkle {
+  from {
+    opacity: 0.18;
+  }
+  to {
+    opacity: 0.95;
+  }
+}
+
+/* Meteor shower: each meteor owns a long cycle; only its first ~12% is the
+   visible streak, so the sky stays quiet between bursts. JS just pauses the
+   whole group while the tab is hidden. */
+.scene-meteors.is-paused .scene-meteor {
+  animation-play-state: paused;
+}
+
+.scene-meteor {
+  opacity: 0;
+  animation: scene-meteor-fly var(--meteor-cycle) linear var(--meteor-delay) infinite;
+}
+
+@keyframes scene-meteor-fly {
+  0%,
+  6% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  8% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  18%,
+  100% {
+    opacity: 0;
+    transform: translateX(var(--meteor-travel));
+  }
+}
+
+/* Birds cross the sky; evening birds fly home (reverse). */
+.scene-bird {
+  animation-name: scene-bird-fly;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.scene-birds.is-home .scene-bird {
+  animation-direction: reverse;
+}
+
+@keyframes scene-bird-fly {
+  from {
+    transform: translateX(-90px);
+  }
+  to {
+    transform: translateX(1540px);
+  }
+}
+
+/* Morning ground mist breathes sideways. */
+.scene-ground-mist {
+  animation: scene-mist-drift 30s ease-in-out infinite alternate;
+}
+
+/* Embers rise and fade (camp-local coordinates). */
+.scene-ember {
+  animation-name: scene-ember-rise;
+  animation-timing-function: ease-out;
+  animation-iteration-count: infinite;
+  opacity: 0;
+}
+
+@keyframes scene-ember-rise {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(-95px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-cloud,
+  .scene-star-group,
+  .scene-bird,
+  .scene-ground-mist,
+  .scene-ember,
+  .scene-meteor {
+    animation: none;
+  }
+  .scene-star {
+    opacity: 0.7;
+  }
+}

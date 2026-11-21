@@ -1,0 +1,74 @@
+/* ------------------------------------------------------------------
+   Skills — grouped cards with simple skill pills.
+------------------------------------------------------------------ */
+
+.skill-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+.skill-card {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 2vw, 1.35rem);
+  padding: clamp(1.25rem, 2.4vw, 1.75rem);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, #ffffff 9%, transparent) 0%,
+      transparent 46%
+    ),
+    color-mix(in srgb, var(--bg) 12%, transparent);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.skill-card-head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skill-card-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 1.8vw, 1.4rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.skill-card-summary {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--text-faint);
+}
+
+.skill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.skill-pill {
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+/* ---------------- Responsive ---------------- */
+
+@media (max-width: 760px) {
+  .skill-grid {
+    grid-template-columns: 1fr;
+  }
+}

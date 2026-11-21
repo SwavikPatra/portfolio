@@ -1,0 +1,366 @@
+/* ------------------------------------------------------------------
+   Scene UI that must sit ABOVE page content (outside .scene stacking):
+   time-of-day toggle, contact milestone, contact modal.
+------------------------------------------------------------------ */
+
+.scene-toggle {
+  position: fixed;
+  top: calc(var(--bar-h) + 14px);
+  right: clamp(12px, 2vw, 26px);
+  z-index: 55;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 7px;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--bg-raised) 82%, transparent);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-sm);
+}
+
+.scene-toggle-btn {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-full);
+  color: var(--text-faint);
+  transition: color var(--dur) var(--ease), background-color var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+}
+
+.scene-toggle-btn:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.scene-toggle-btn.is-active {
+  color: var(--on-accent);
+  background: var(--accent);
+}
+
+.scene-toggle-btn:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.scene-toggle-divider {
+  height: 1px;
+  margin: 2px 6px;
+  background: var(--border);
+}
+
+@media (max-width: 720px) {
+  .scene-toggle {
+    top: auto;
+    bottom: 14px;
+    right: 12px;
+    flex-direction: row;
+  }
+
+  .scene-toggle-divider {
+    width: 1px;
+    height: auto;
+    margin: 6px 2px;
+  }
+}
+
+/* ---------------- Contact milestone (trail stone) ---------------- */
+
+/* Same viewBox / slice as the scene art, so the stone shares the exact ground
+   coordinates and parallax of the bike and rider while staying focusable. */
+.scene-milestone-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 56;
+  pointer-events: none;
+
+  /* Flat-vector stone tones derived from the active scene palette. */
+  --stone-top: color-mix(in srgb, var(--stone) 88%, #ffffff);
+  --stone-bottom: color-mix(in srgb, var(--stone) 78%, var(--camp));
+  --stone-side: color-mix(in srgb, var(--stone) 52%, var(--camp));
+  --stone-cap: color-mix(in srgb, var(--stone) 84%, #ffffff);
+  --stone-ink: color-mix(in srgb, var(--camp) 88%, #ffffff);
+  --stone-wear: color-mix(in srgb, var(--camp) 38%, transparent);
+}
+
+.scene-milestone-layer[data-scene='night'] {
+  --stone-ink: var(--fire-core);
+}
+
+.scene-milestone-layer svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.scene-milestone-layer stop {
+  transition: stop-color 0.4s linear;
+}
+
+.scene-milestone {
+  pointer-events: auto;
+  cursor: pointer;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  /* Half-turned on the ground (Y axis) — never tips off its base. */
+  transform: rotateY(-48deg);
+  transform: perspective(700px) rotateY(-48deg);
+  transition: transform 0.5s var(--ease);
+}
+
+.scene-stone-thanks {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 600;
+  fill: var(--fire-core, var(--text));
+  paint-order: stroke;
+  stroke: color-mix(in srgb, var(--camp, #000) 70%, transparent);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.scene-stone-shadow {
+  fill: color-mix(in srgb, var(--camp) 46%, transparent);
+}
+
+.scene-milestone-layer[data-scene='sunset'] .scene-stone-shadow {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: translateX(10px) scaleX(1.22);
+}
+
+.scene-stone-glow {
+  fill: url(#scene-milestone-glow);
+  opacity: 0;
+  transition: opacity 0.35s var(--ease);
+}
+
+.scene-stone-mound {
+  fill: color-mix(in srgb, var(--grass) 74%, var(--camp));
+  transition: fill 0.4s linear;
+}
+
+/* Front: gentle vertical tone shift, minimal soft edge. */
+.scene-stone-body {
+  fill: url(#scene-milestone-front);
+  stroke: color-mix(in srgb, var(--camp) 32%, transparent);
+  stroke-width: 1;
+}
+
+.scene-stone-side,
+.scene-stone-top {
+  transition: fill 0.4s linear;
+}
+
+.scene-stone-side {
+  fill: var(--stone-side);
+}
+
+.scene-stone-top {
+  fill: var(--stone-side);
+}
+
+.scene-stone-wear path {
+  fill: none;
+  stroke: var(--stone-wear);
+  stroke-width: 1.1;
+  stroke-linecap: round;
+}
+
+.scene-stone-wear circle {
+  fill: var(--stone-wear);
+}
+
+/* Painted band — the side stays a shade deeper than the front. */
+.scene-stone-band,
+.scene-stone-band-side {
+  transition: fill 0.4s linear, filter 0.35s var(--ease);
+}
+
+.scene-stone-band {
+  fill: var(--camp-accent);
+}
+
+.scene-stone-band-side {
+  fill: color-mix(in srgb, var(--camp-accent) 66%, var(--camp));
+}
+
+.scene-stone-band-text {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  fill: var(--camp);
+}
+
+.scene-stone-label,
+.scene-stone-carve-shadow {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.scene-stone-label {
+  fill: var(--stone-ink);
+}
+
+.scene-stone-carve-shadow {
+  fill: color-mix(in srgb, var(--stone-cap) 78%, transparent);
+}
+
+.scene-stone-fire-rim {
+  fill: none;
+  stroke: var(--fire);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.scene-stone-grass {
+  fill: var(--grass);
+  opacity: 0.9;
+  transition: fill 0.4s linear;
+}
+
+.scene-milestone:hover,
+.scene-milestone:focus-visible {
+  transform: rotateY(-48deg) translateY(-2px);
+  transform: perspective(700px) rotateY(-38deg) translateY(-2px);
+}
+
+.scene-milestone:hover .scene-stone-glow,
+.scene-milestone:focus-visible .scene-stone-glow {
+  opacity: 1;
+}
+
+.scene-milestone:hover .scene-stone-band,
+.scene-milestone:focus-visible .scene-stone-band {
+  filter: brightness(1.18);
+}
+
+.scene-milestone:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 4px;
+}
+
+/* ---------------- Contact modal ---------------- */
+
+.scene-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.scene-modal-panel {
+  position: relative;
+  width: min(460px, 100%);
+  max-height: min(86vh, 640px);
+  overflow: auto;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: clamp(20px, 4vw, 30px);
+  box-shadow: var(--shadow);
+}
+
+.scene-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.scene-modal-title {
+  font-size: clamp(1.7rem, 5vw, 2.3rem);
+  font-weight: 800;
+}
+
+.scene-modal-close {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  transition: color var(--dur) var(--ease), background-color var(--dur) var(--ease);
+}
+
+.scene-modal-close:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.scene-modal-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.scene-modal-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-block: 13px;
+  border-top: 1px solid var(--border);
+}
+
+.scene-modal-key {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.scene-modal-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.scene-modal-link {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text);
+  overflow-wrap: anywhere;
+  transition: color var(--dur) var(--ease);
+}
+
+.scene-modal-link:hover {
+  color: var(--accent);
+}
+
+.scene-copy-btn {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--accent-line);
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+  transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+
+.scene-copy-btn:hover {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+@media (max-width: 720px) {
+  .scene-stone-thanks {
+    font-size: 21px;
+  }
+}

@@ -1,0 +1,121 @@
+/* ------------------------------------------------------------------
+   Camp scene: bike + rider poses + props, shadow-to-reveal, fire flicker.
+------------------------------------------------------------------ */
+
+/* Inlined SVG art inherits its theme colour via currentColor. */
+.scene-camp-tree,
+.scene-night-tent,
+.scene-rider {
+  transition: color 1s linear;
+}
+
+/* Theme colour transitions on every camp shape (opacity stays scrub-driven). */
+.scene-camp path,
+.scene-camp circle,
+.scene-camp rect,
+.scene-camp ellipse {
+  transition: fill 1s linear, stroke 1s linear;
+}
+
+/* Bike art dims with the ambient light; the headlight stays bright. */
+.scene-bike-art {
+  filter: brightness(1);
+  transition: filter 1s linear;
+}
+
+.scene[data-scene='sunset'] .scene-bike-art {
+  filter: brightness(0.8);
+}
+
+.scene[data-scene='night'] .scene-bike-art {
+  filter: brightness(0.55);
+}
+
+/* Bonfire flicker — transform/opacity only, origin at the logs. */
+.scene-flame {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: scene-flame-flicker 0.42s ease-in-out infinite alternate;
+}
+
+@keyframes scene-flame-flicker {
+  from {
+    transform: scaleY(1) scaleX(1);
+    opacity: 0.9;
+  }
+  to {
+    transform: scaleY(1.14) scaleX(0.92);
+    opacity: 1;
+  }
+}
+
+/* Inner flame flickers on a slightly faster, offset beat. */
+.scene-flame-core {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: scene-flame-flicker 0.31s ease-in-out infinite alternate-reverse;
+}
+
+/* Everything fire-lit breathes on one beat: the logs' pool, the air glow
+   behind the rider, the clipped ground light and his warm rim. */
+.scene-campfire-glow,
+.scene-fire-glow,
+.scene-camp-glow,
+.scene-firelight-pulse,
+.scene-rider-airglow-shape,
+.scene-rider-rim {
+  animation: scene-glow-pulse 2.6s ease-in-out infinite alternate;
+}
+
+/* Firelight is clipped to the foreground silhouettes in Foreground.tsx.
+   Plain alpha blending (not mix-blend-mode) — blend modes over the scrolling
+   fixed scene make Chrome repaint in blocks during scroll. The gradient's
+   stop opacities already give the warm pool. */
+.scene-firelight {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+@keyframes scene-glow-pulse {
+  from {
+    opacity: 0.75;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* The camp glow's scale/brightness are scrubbed from p in CampGlow. */
+
+/* The tent sits a little deeper in the scene than the near ground. */
+.scene-tent-lit {
+  opacity: 0.95;
+}
+
+/* Lantern behind the tent fabric: a much slower, shallower beat than the fire. */
+.scene-tent-lantern {
+  animation: scene-tent-flicker 5.4s ease-in-out infinite alternate;
+}
+
+@keyframes scene-tent-flicker {
+  from {
+    opacity: 0.86;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-flame,
+  .scene-flame-core,
+  .scene-campfire-glow,
+  .scene-fire-glow,
+  .scene-camp-glow,
+  .scene-firelight-pulse,
+  .scene-rider-airglow-shape,
+  .scene-rider-rim,
+  .scene-tent-lantern {
+    animation: none;
+  }
+}
