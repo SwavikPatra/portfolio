@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
 import { CONTACT_CONFIG } from './contactConfig'
+import { useCopyToClipboard } from '../lib/hooks'
 
 interface ContactModalProps {
   open: boolean
@@ -8,26 +9,26 @@ interface ContactModalProps {
 }
 
 function CopyButton({ value, label }: { value: string; label: string }) {
-  const [copied, setCopied] = useState(false)
-  const timerRef = useRef(0)
-
-  useEffect(() => () => window.clearTimeout(timerRef.current), [])
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(value)
-    } catch {
-      // Clipboard API unavailable — nothing else we can do without a backend.
-      return
-    }
-    setCopied(true)
-    timerRef.current = window.setTimeout(() => setCopied(false), 1600)
-  }
+  const { copy, status } = useCopyToClipboard()
 
   return (
-    <button type="button" className="scene-copy-btn" onClick={copy} aria-label={`Copy ${label}`}>
-      {copied ? 'Copied!' : 'Copy'}
-    </button>
+    <>
+      <button
+        type="button"
+        className="scene-copy-btn"
+        onClick={() => copy(value)}
+        aria-label={`Copy ${label}`}
+      >
+        {status === 'copied' ? 'Copied!' : status === 'error' ? 'Try again' : 'Copy'}
+      </button>
+      <span className="sr-only" role="status" aria-live="polite">
+        {status === 'copied'
+          ? `${label} copied`
+          : status === 'error'
+            ? `Could not copy ${label}`
+            : ''}
+      </span>
+    </>
   )
 }
 
@@ -136,20 +137,21 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
 
         <ul className="scene-modal-list">
           <Row label="Resume">
-            <a className="scene-modal-link" href={CONTACT_CONFIG.resumeUrl} download>
-              Download PDF
+            <a
+              className="scene-modal-link"
+              href={CONTACT_CONFIG.resumeUrl}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open folder ↗
             </a>
           </Row>
           <Row label="Email">
-            <a className="scene-modal-link" href={`mailto:${CONTACT_CONFIG.email}`}>
-              {CONTACT_CONFIG.email}
-            </a>
+            <span className="scene-modal-link">{CONTACT_CONFIG.email}</span>
             <CopyButton value={CONTACT_CONFIG.email} label="email address" />
           </Row>
           <Row label="Phone">
-            <a className="scene-modal-link" href={CONTACT_CONFIG.phoneHref}>
-              {CONTACT_CONFIG.phone}
-            </a>
+            <span className="scene-modal-link">{CONTACT_CONFIG.phone}</span>
             <CopyButton value={CONTACT_CONFIG.phone} label="phone number" />
           </Row>
           <Row label="Instagram">

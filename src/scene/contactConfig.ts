@@ -6,14 +6,13 @@ const socialUrl = (label: string) =>
 /**
  * ── EDIT YOUR CONTACT DETAILS HERE ─────────────────────────────────────
  * Single source for the contact milestone + modal. Email / phone / socials
- * default to the values in src/data/profile.ts; swap the Instagram + resume
- * links for your own before launch.
+ * default to the values in src/data/profile.ts; swap the Instagram link
+ * for your own before launch.
  */
 export const CONTACT_CONFIG = {
-  resumeUrl: '/resume.pdf',
+  resumeUrl: profile.resumeUrl,
   email: profile.email,
   phone: profile.phone,
-  phoneHref: `tel:${profile.phone.replace(/\s+/g, '')}`,
   instagram: 'https://www.instagram.com/', // ← replace with your profile URL
   linkedin: socialUrl('LinkedIn'),
   github: socialUrl('GitHub'),

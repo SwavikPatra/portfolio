@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 
 function subscribeScroll(callback: () => void) {
   window.addEventListener('scroll', callback, { passive: true })
@@ -41,4 +41,54 @@ export function useScrollSpy(ids: string[], offset = 120) {
     () => getSnapshotFor(ids, offset),
     () => ids[0] ?? '',
   )
+}
+
+export type CopyStatus = 'idle' | 'copied' | 'error'
+
+function fallbackCopy(value: string) {
+  const field = document.createElement('textarea')
+  field.value = value
+  field.setAttribute('readonly', '')
+  field.style.position = 'fixed'
+  field.style.top = '-1000px'
+  field.style.opacity = '0'
+  document.body.appendChild(field)
+  field.select()
+  let copied = false
+  try {
+    copied = document.execCommand('copy')
+  } catch {
+    copied = false
+  }
+  field.remove()
+  return copied
+}
+
+export function useCopyToClipboard(resetAfter = 1600) {
+  const [status, setStatus] = useState<CopyStatus>('idle')
+  const timerRef = useRef(0)
+
+  useEffect(() => () => window.clearTimeout(timerRef.current), [])
+
+  const copy = useCallback(
+    async (value: string) => {
+      let copied = false
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(value)
+          copied = true
+        }
+      } catch {
+        copied = false
+      }
+      if (!copied) copied = fallbackCopy(value)
+      window.clearTimeout(timerRef.current)
+      setStatus(copied ? 'copied' : 'error')
+      timerRef.current = window.setTimeout(() => setStatus('idle'), resetAfter)
+      return copied
+    },
+    [resetAfter],
+  )
+
+  return { copy, status }
 }

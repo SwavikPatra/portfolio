@@ -62,7 +62,7 @@ export const profile = {
   phone: '+91 97778 53386',
   experienceYears: 2,
   availability: 'Immediate joiner',
-  resumeUrl: '#',
+  resumeUrl: 'https://drive.google.com/drive/folders/1EQh9Hco8BKgbs4p38RrokXK80b1U-tWv?usp=sharing',
   // Swap this path for your own cut-out PNG (transparent background, portrait crop).
   portrait: `${import.meta.env.BASE_URL}me.png`,
   socials: [

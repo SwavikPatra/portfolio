@@ -1,10 +1,12 @@
 import { motion, useReducedMotion } from 'framer-motion'
-import { ArrowUpRightIcon } from '../components/Icons'
+import { ArrowUpRightIcon, CheckIcon, CopyIcon, DownloadIcon } from '../components/Icons'
 import { riseInView } from '../lib/motion'
+import { useCopyToClipboard } from '../lib/hooks'
 import { profile } from '../data/profile'
 
 export default function Contact() {
   const reduced = useReducedMotion()
+  const { copy, status } = useCopyToClipboard()
 
   return (
     <section className="section contact" id="contact" aria-labelledby="contact-title">
@@ -14,10 +16,33 @@ export default function Contact() {
           <span className="outline">kick off a project</span>
         </motion.h2>
 
-        <motion.a className="contact-email glass-text" href={`mailto:${profile.email}`} {...riseInView(reduced, { y: 18, delay: 0.1 })}>
-          {profile.email}
-          <ArrowUpRightIcon />
-        </motion.a>
+        <motion.div className="contact-actions" {...riseInView(reduced, { y: 18, delay: 0.1 })}>
+          <button
+            className="contact-action contact-action-email glass-text"
+            type="button"
+            onClick={() => copy(profile.email)}
+            aria-label={`Copy email address ${profile.email}`}
+          >
+            {profile.email}
+            {status === 'copied' ? <CheckIcon /> : <CopyIcon />}
+          </button>
+          <a
+            className="contact-action contact-action-resume glass-text"
+            href={profile.resumeUrl}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Resume
+            <DownloadIcon />
+          </a>
+          <span className="contact-action-status" role="status" aria-live="polite">
+            {status === 'copied'
+              ? 'Copied!'
+              : status === 'error'
+                ? 'Copy failed — select the address manually'
+                : ''}
+          </span>
+        </motion.div>
 
         <motion.div className="contact-grid glass-text" {...riseInView(reduced, { delay: 0.18 })}>
           <div className="contact-block">

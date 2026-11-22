@@ -1,7 +1,8 @@
 import { motion, useReducedMotion } from 'framer-motion'
-import { ArrowRightIcon } from './Icons'
+import { ArrowRightIcon, CheckIcon, CopyIcon } from './Icons'
 import { profile } from '../data/profile'
 import { riseOnMount } from '../lib/motion'
+import { useCopyToClipboard } from '../lib/hooks'
 
 function AvailabilityBadge() {
   return (
@@ -39,6 +40,7 @@ function AvailabilityBadge() {
 
 export default function Hero() {
   const reduced = useReducedMotion()
+  const { copy, status } = useCopyToClipboard()
 
   return (
     <section className="hero" id="top" aria-label="Introduction">
@@ -64,9 +66,18 @@ export default function Hero() {
             <a className="btn btn-primary" href="#work">
               See the work <ArrowRightIcon />
             </a>
-            <a className="btn btn-ghost" href={`mailto:${profile.email}`}>
-              {profile.email}
-            </a>
+            <button
+              className="btn btn-ghost hero-email"
+              type="button"
+              onClick={() => copy(profile.email)}
+              aria-label={`Copy email address ${profile.email}`}
+            >
+              {status === 'copied' ? 'Copied!' : status === 'error' ? 'Copy failed' : profile.email}
+              {status === 'copied' ? <CheckIcon /> : <CopyIcon />}
+            </button>
+            <span className="sr-only" role="status" aria-live="polite">
+              {status === 'copied' ? 'Email address copied' : status === 'error' ? 'Copy failed' : ''}
+            </span>
           </motion.div>
 
           <motion.dl className="hero-meta" {...riseOnMount(reduced, 0.36)}>

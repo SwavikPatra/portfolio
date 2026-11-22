@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { profile } from '../data/profile'
 import { useScrolled, useScrollSpy } from '../lib/hooks'
-import { CloseIcon, MenuIcon, OpenBookIcon } from './Icons'
+import { CloseIcon, DownloadIcon, MenuIcon, OpenBookIcon } from './Icons'
 import { useReadingMode } from '../theme/read-mode-context'
 
 const SECTION_IDS = ['top', 'work', 'about', 'experience', 'contact']
@@ -45,6 +45,14 @@ export default function TopBar() {
         </nav>
 
         <div className="topbar-actions">
+          <a
+            className="btn btn-ghost btn-resume-top"
+            href={profile.resumeUrl}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Resume <DownloadIcon />
+          </a>
           <a className="btn btn-primary btn-cta" href="#contact">
             Let&apos;s talk
           </a>
@@ -109,9 +117,19 @@ export default function TopBar() {
                   className="btn btn-primary"
                   href="#contact"
                   onClick={() => setMenuOpen(false)}
-                  style={{ marginBottom: 18 }}
+                  style={{ marginBottom: 10 }}
                 >
                   Let&apos;s talk
+                </a>
+                <a
+                  className="btn btn-ghost"
+                  href={profile.resumeUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => setMenuOpen(false)}
+                  style={{ marginBottom: 18 }}
+                >
+                  Resume <DownloadIcon />
                 </a>
                 <p>
                   {profile.email}

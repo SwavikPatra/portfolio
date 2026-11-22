@@ -20,12 +20,19 @@
   -webkit-text-stroke: 2px var(--text);
 }
 
-.contact-email {
+.contact-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px clamp(20px, 3vw, 40px);
+  margin-top: clamp(1.75rem, 3.5vw, 2.75rem);
+}
+
+.contact-action {
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  margin-top: clamp(1.75rem, 3.5vw, 2.75rem);
-  padding-bottom: 8px;
+  padding: 0 0 8px;
   border-bottom: 2px solid var(--accent);
   font-family: var(--font-display);
   font-size: clamp(1.5rem, 3.6vw, 2.75rem);
@@ -37,19 +44,30 @@
   transition: color var(--dur) var(--ease);
 }
 
-.contact-email svg {
+.contact-action svg {
   width: clamp(20px, 2.6vw, 30px);
   height: clamp(20px, 2.6vw, 30px);
   color: var(--accent);
   transition: transform var(--dur) var(--ease);
 }
 
-.contact-email:hover {
+.contact-action:hover {
   color: var(--accent);
 }
 
-.contact-email:hover svg {
+.contact-action:hover svg {
   transform: translate(3px, -3px);
+}
+
+.contact-action-status {
+  align-self: center;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--accent);
+}
+
+.contact-action-status:empty {
+  display: none;
 }
 
 .contact-grid {
@@ -61,13 +79,20 @@
   gap: clamp(1.5rem, 4vw, 3rem);
 }
 
+.contact-block {
+  padding: clamp(14px, 2vw, 18px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface) 38%, transparent);
+}
+
 .contact-label {
   font-family: var(--font-display);
   font-size: 0.92rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--text-faint);
+  color: var(--text);
   margin-bottom: 12px;
 }
 
@@ -82,7 +107,7 @@
   align-items: center;
   gap: 7px;
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text);
   transition: color var(--dur) var(--ease);
 }
@@ -90,7 +115,7 @@
 .contact-socials a svg {
   width: 14px;
   height: 14px;
-  color: var(--text-faint);
+  color: var(--text-muted);
   transition: color var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
 
@@ -106,6 +131,7 @@
 .contact-text {
   font-size: 0.95rem;
   line-height: 1.7;
+  color: var(--text);
 }
 
 /* ---------------- Responsive ---------------- */
