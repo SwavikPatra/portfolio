@@ -80,17 +80,6 @@ main {
   color: var(--text);
 }
 
-.monogram-box {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  background: var(--accent);
-  color: var(--on-accent);
-  font-size: 1.05rem;
-  border-radius: var(--radius-sm);
-}
-
 .topnav {
   justify-self: center;
   display: flex;
@@ -158,6 +147,45 @@ main {
   color: var(--text);
   border-color: var(--border-strong);
   background: var(--surface);
+}
+
+.icon-btn.is-active {
+  color: var(--accent-ink);
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+}
+
+.reading-toggle {
+  position: relative;
+  margin-left: 6px;
+}
+
+.reading-toggle::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 60;
+  padding: 5px 9px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 0.72rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-3px);
+  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease),
+    visibility var(--dur);
+  pointer-events: none;
+}
+
+.reading-toggle:hover::after,
+.reading-toggle:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
 .icon-btn svg {

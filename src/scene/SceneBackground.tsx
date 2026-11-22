@@ -1,5 +1,6 @@
 import { motion, useTransform } from 'framer-motion'
 import { useState } from 'react'
+import { useReadingMode } from '../theme/read-mode-context'
 import { SceneThemeProvider } from './SceneThemeContext'
 import { useSceneTheme } from './scene-theme-context'
 import { SCENE_PALETTES, paletteToCssVars } from './sceneTheme'
@@ -85,9 +86,12 @@ function SceneArt({
             <stop offset="40%" style={{ stopColor: 'var(--fire)', stopOpacity: 0.5 }} />
             <stop offset="100%" style={{ stopColor: 'var(--fire)', stopOpacity: 0 }} />
           </radialGradient>
-          <linearGradient id="scene-meteor-grad">
+          {/* Fades along a tapered trail polygon (a plain horizontal line has a
+              zero-height bbox, so an objectBoundingBox gradient won't paint). */}
+          <linearGradient id="scene-meteor-grad" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%" style={{ stopColor: 'var(--star)', stopOpacity: 0 }} />
-            <stop offset="100%" style={{ stopColor: 'var(--star)', stopOpacity: 1 }} />
+            <stop offset="65%" style={{ stopColor: 'var(--star)', stopOpacity: 0.28 }} />
+            <stop offset="100%" style={{ stopColor: 'var(--star)', stopOpacity: 0.8 }} />
           </linearGradient>
         </defs>
 
@@ -141,8 +145,10 @@ function SceneStage() {
   const { sceneTheme } = useSceneTheme()
   const vars = paletteToCssVars(SCENE_PALETTES[sceneTheme]) as CSSProperties
   const [seed, setSeed] = useState(LANDSCAPE.seed)
-  const progress = useScrollProgress()
-  const mouse = useMouseParallax()
+  const { readingOn } = useReadingMode()
+  const frozen = readingOn
+  const progress = useScrollProgress(frozen)
+  const mouse = useMouseParallax(frozen)
   const hazeP = useTransform(progress, (p) => `${(hazeAmount(p) * 100).toFixed(2)}%`)
 
   return (

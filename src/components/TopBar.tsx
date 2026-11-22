@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { profile } from '../data/profile'
 import { useScrolled, useScrollSpy } from '../lib/hooks'
-import { CloseIcon, MenuIcon, MoonIcon, SunIcon } from './Icons'
-import { useTheme } from '../theme/theme-context'
+import { CloseIcon, MenuIcon, OpenBookIcon } from './Icons'
+import { useReadingMode } from '../theme/read-mode-context'
 
 const SECTION_IDS = ['top', 'work', 'about', 'experience', 'contact']
 
 export default function TopBar() {
-  const { theme, toggle } = useTheme()
+  const { readingOn, toggleReading } = useReadingMode()
   const scrolled = useScrolled()
   const [menuOpen, setMenuOpen] = useState(false)
   const active = useScrollSpy(SECTION_IDS)
@@ -29,10 +29,7 @@ export default function TopBar() {
     <>
       <header className={`topbar${scrolled ? ' is-scrolled' : ''}`}>
         <a className="monogram" href="#top" aria-label="Swavik Patra — back to top">
-          <span className="monogram-box" aria-hidden="true">
-            {profile.monogram}
-          </span>
-          <span aria-hidden="true">Swavik</span>
+          <span>Swavik</span>
         </a>
 
         <nav className="topnav" aria-label="Primary">
@@ -52,11 +49,14 @@ export default function TopBar() {
             Let&apos;s talk
           </a>
           <button
-            className="icon-btn"
-            onClick={toggle}
-            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+            className={`icon-btn reading-toggle${readingOn ? ' is-active' : ''}`}
+            onClick={toggleReading}
+            aria-label="Reading mode"
+            aria-pressed={readingOn}
+            data-tooltip={readingOn ? 'Reading mode on' : 'Reading mode off'}
+            title="Reading mode"
           >
-            {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+            <OpenBookIcon />
           </button>
           <button
             className="icon-btn menu-btn"

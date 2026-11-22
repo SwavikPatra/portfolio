@@ -3,8 +3,11 @@ import type { SceneThemeId } from './sceneTheme'
 
 export interface SceneThemeValue {
   sceneTheme: SceneThemeId
+  /** True while the scene follows the visitor's local clock. */
+  isAuto: boolean
   setSceneTheme: (theme: SceneThemeId) => void
   cycleSceneTheme: () => void
+  resetSceneThemeToAuto: () => void
 }
 
 export const SceneThemeContext = createContext<SceneThemeValue | null>(null)

@@ -1,0 +1,56 @@
+/* ------------------------------------------------------------------
+   Reading mode: the time-of-day landscape becomes a still backdrop while
+   the story elements (rider, bike, camp, effects, milestone) step aside.
+   Appearance (dark/light) and text size are independent, remembered choices.
+------------------------------------------------------------------ */
+
+[data-reading-mode='on'] .scene-camp,
+[data-reading-mode='on'] .scene-firelight,
+[data-reading-mode='on'] .scene-ground-effects,
+[data-reading-mode='on'] .scene-sky-effects,
+[data-reading-mode='on'] .scene-milestone-layer {
+  display: none;
+}
+
+[data-reading-mode='on'] .scene,
+[data-reading-mode='on'] .scene *,
+[data-reading-mode='on'] .hero-badge svg {
+  animation: none !important;
+  transition: none !important;
+}
+
+html[data-reading-mode='on'][data-reading-text-scale='0.9'] {
+  font-size: 90%;
+}
+
+html[data-reading-mode='on'][data-reading-text-scale='1.1'] {
+  font-size: 110%;
+}
+
+.scene-veil {
+  transition: background var(--dur-slow) var(--ease);
+}
+
+[data-reading-mode='on'] .scene-veil {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg) 82%, transparent) 0%,
+    color-mix(in srgb, var(--bg) 76%, transparent) 100%
+  );
+}
+
+[data-reading-mode='on'][data-reading-appearance='light'] .scene-veil {
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

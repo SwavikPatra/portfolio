@@ -199,6 +199,13 @@ export const BookIcon = (p: IconProps) => (
   </svg>
 )
 
+export const OpenBookIcon = (p: IconProps) => (
+  <svg {...base} {...p}>
+    <path d="M12 6.5c-2.6-1.7-5.6-2-8.5-1.2v12c2.9-.8 5.9-.5 8.5 1.2 2.6-1.7 5.6-2 8.5-1.2v-12c-2.9-.8-5.9-.5-8.5 1.2Z" />
+    <path d="M12 6.5v12" />
+  </svg>
+)
+
 export const HeartIcon = (p: IconProps) => (
   <svg {...base} {...p}>
     <path d="M12 20s-7.5-4.6-7.5-9.6A4.4 4.4 0 0 1 12 7.4a4.4 4.4 0 0 1 7.5 3c0 5-7.5 9.6-7.5 9.6Z" />

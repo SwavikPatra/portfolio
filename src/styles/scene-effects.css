@@ -55,11 +55,14 @@
     opacity: 0;
     transform: translateX(0);
   }
-  8% {
+  9% {
     opacity: 1;
-    transform: translateX(0);
   }
-  18%,
+  13% {
+    opacity: 1;
+    transform: translateX(var(--meteor-travel));
+  }
+  17%,
   100% {
     opacity: 0;
     transform: translateX(var(--meteor-travel));

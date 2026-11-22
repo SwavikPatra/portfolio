@@ -1,4 +1,13 @@
-import type { ReactElement } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import type { KeyboardEvent, ReactElement } from 'react'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import {
+  READING_APPEARANCES,
+  READING_TEMPERATURES,
+  TEXT_SCALES,
+  useReadingMode,
+} from '../theme/read-mode-context'
+import type { ReadingAppearance, ReadingTemperature } from '../theme/read-mode-context'
 import { SCENE_THEMES } from './sceneTheme'
 import type { SceneThemeId } from './sceneTheme'
 import { useSceneTheme } from './scene-theme-context'
@@ -49,6 +58,42 @@ function MoonIcon() {
   )
 }
 
+function AutoIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3.5 2" />
+    </svg>
+  )
+}
+
+function ChevronDownIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  )
+}
+
+// Reading icons deliberately differ from the sun/moon time-of-day glyphs.
+function ReadingDarkIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 3.5a8.5 8.5 0 0 1 0 17Z" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+function ReadingLightIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5.5 3.5h9l4 4v13h-13Z" />
+      <path d="M14.5 3.5v4h4M8.5 12h7M8.5 15.5h5" />
+    </svg>
+  )
+}
+
 const ICONS: Record<SceneThemeId, () => ReactElement> = {
   morning: SunriseIcon,
   noon: SunIcon,
@@ -63,43 +108,352 @@ const LABELS: Record<SceneThemeId, string> = {
   night: 'Night',
 }
 
+const READING_ICONS: Record<ReadingAppearance, () => ReactElement> = {
+  dark: ReadingDarkIcon,
+  light: ReadingLightIcon,
+}
+
+const READING_LABELS: Record<ReadingAppearance, string> = {
+  dark: 'Dark',
+  light: 'Light',
+}
+
+const TEMPERATURE_LABELS: Record<ReadingTemperature, string> = {
+  cool: 'Cool',
+  neutral: 'Neutral',
+  warm: 'Warm',
+}
+
 interface ThemeToggleProps {
   onRandomize: () => void
 }
 
-/** Corner scene controls: time-of-day switch + landscape randomizer. */
+/** Corner control bar: scene time of day, or reading appearance + text size. */
 export default function ThemeToggle({ onRandomize }: ThemeToggleProps) {
-  const { sceneTheme, setSceneTheme } = useSceneTheme()
+  const { sceneTheme, isAuto, setSceneTheme, resetSceneThemeToAuto } = useSceneTheme()
+  const { readingOn, appearance, setAppearance, temperature, setTemperature, textScale, stepTextScale } =
+    useReadingMode()
+  const reducedMotion = useReducedMotion()
+  const barRef = useRef<HTMLDivElement>(null)
+  const appearanceRefs = useRef<(HTMLButtonElement | null)[]>([])
+  const temperatureRefs = useRef<(HTMLButtonElement | null)[]>([])
+  const [moreState, setMoreState] = useState({ mode: false, open: false })
+  const moreOpen = moreState.mode === readingOn && moreState.open
+  const [readingMoreState, setReadingMoreState] = useState({ mode: false, open: false })
+  const readingMoreOpen = readingMoreState.mode === readingOn && readingMoreState.open
+  const [collapsed, setCollapsed] = useState(false)
+
+  useEffect(() => {
+    const update = () => {
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight
+      setCollapsed(scrollable > 0 ? window.scrollY / scrollable > 0.22 : false)
+    }
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+    return () => {
+      window.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!moreOpen && !readingMoreOpen) return
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      setMoreState((state) => ({ ...state, open: false }))
+      setReadingMoreState((state) => ({ ...state, open: false }))
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [moreOpen, readingMoreOpen])
+
+  useEffect(() => {
+    if (!moreOpen && !readingMoreOpen) return
+    const onPointerDown = (event: globalThis.PointerEvent) => {
+      if (barRef.current?.contains(event.target as Node)) return
+      setMoreState((state) => ({ ...state, open: false }))
+      setReadingMoreState((state) => ({ ...state, open: false }))
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => document.removeEventListener('pointerdown', onPointerDown)
+  }, [moreOpen, readingMoreOpen])
+
+  const toggleReadingMore = () => {
+    setReadingMoreState((state) => ({
+      mode: readingOn,
+      open: !(state.mode === readingOn && state.open),
+    }))
+  }
+
+  const handleAppearanceKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    const forward = event.key === 'ArrowDown' || event.key === 'ArrowRight'
+    const backward = event.key === 'ArrowUp' || event.key === 'ArrowLeft'
+    if (!forward && !backward) return
+    event.preventDefault()
+    const delta = forward ? 1 : -1
+    const next = (index + delta + READING_APPEARANCES.length) % READING_APPEARANCES.length
+    setAppearance(READING_APPEARANCES[next])
+    appearanceRefs.current[next]?.focus()
+  }
+
+  const handleTemperatureKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    const forward = event.key === 'ArrowDown' || event.key === 'ArrowRight'
+    const backward = event.key === 'ArrowUp' || event.key === 'ArrowLeft'
+    if (!forward && !backward) return
+    event.preventDefault()
+    const delta = forward ? 1 : -1
+    const next = (index + delta + READING_TEMPERATURES.length) % READING_TEMPERATURES.length
+    setTemperature(READING_TEMPERATURES[next])
+    temperatureRefs.current[next]?.focus()
+  }
+
+  const swapDuration = reducedMotion ? 0 : 0.18
+  const activeTitle = isAuto ? 'Auto scene (follow local time)' : `${LABELS[sceneTheme]} scene`
+
+  const buttonMotion = {
+    layout: true,
+    initial: { opacity: 0, scale: 0.75 },
+    animate: { opacity: 1, scale: 1 },
+    exit: { opacity: 0, scale: 0.75 },
+    transition: { duration: swapDuration },
+  }
+
+  const sceneButton = (theme: SceneThemeId) => {
+    const Icon = ICONS[theme]
+    const active = !isAuto && sceneTheme === theme
+    return (
+      <motion.button
+        key={theme}
+        type="button"
+        {...buttonMotion}
+        className={`scene-toggle-btn${active ? ' is-active' : ''}`}
+        aria-label={`${LABELS[theme]} scene`}
+        aria-pressed={active}
+        data-tooltip={`${LABELS[theme]} scene`}
+        title={`${LABELS[theme]} scene`}
+        onClick={() => setSceneTheme(theme)}
+      >
+        <Icon />
+      </motion.button>
+    )
+  }
 
   return (
-    <div className="scene-toggle" role="group" aria-label="Scene controls">
-      {SCENE_THEMES.map((theme) => {
-        const Icon = ICONS[theme]
-        const active = sceneTheme === theme
-        return (
-          <button
-            key={theme}
-            type="button"
-            className={`scene-toggle-btn${active ? ' is-active' : ''}`}
-            aria-label={`${LABELS[theme]} scene`}
-            aria-pressed={active}
-            title={`${LABELS[theme]} scene`}
-            onClick={() => setSceneTheme(theme)}
+    <div
+      ref={barRef}
+      className={`scene-toggle${readingOn ? ' is-reading' : ''}`}
+      role="group"
+      aria-label={readingOn ? 'Reading controls' : 'Scene controls'}
+    >
+      <AnimatePresence mode="wait" initial={false}>
+        {readingOn ? (
+          <motion.div
+            key="reading"
+            className="scene-toggle-panel"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: swapDuration }}
           >
-            <Icon />
-          </button>
-        )
-      })}
-      <span className="scene-toggle-divider" aria-hidden="true" />
-      <button
-        type="button"
-        className="scene-toggle-btn"
-        aria-label="Randomize landscape"
-        title="Randomize landscape"
-        onClick={onRandomize}
-      >
-        <ShuffleIcon />
-      </button>
+            <div className="reading-group" role="radiogroup" aria-label="Reading mode appearance">
+              {READING_APPEARANCES.map((option, index) => {
+                const Icon = READING_ICONS[option]
+                const selected = appearance === option
+                return (
+                  <button
+                    key={option}
+                    ref={(node) => {
+                      appearanceRefs.current[index] = node
+                    }}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    tabIndex={selected ? 0 : -1}
+                    className={`scene-toggle-btn${selected ? ' is-active' : ''}`}
+                    aria-label={`${READING_LABELS[option]} reading mode`}
+                    data-tooltip={`${READING_LABELS[option]} reading`}
+                    title={`${READING_LABELS[option]} reading mode`}
+                    onClick={() => setAppearance(option)}
+                    onKeyDown={(event) => handleAppearanceKeyDown(event, index)}
+                  >
+                    <Icon />
+                  </button>
+                )
+              })}
+            </div>
+            <motion.button
+              layout
+              type="button"
+              className={`scene-toggle-btn scene-toggle-more${readingMoreOpen ? ' is-open' : ''}`}
+              aria-label={readingMoreOpen ? 'Hide reading options' : 'More reading options'}
+              aria-expanded={readingMoreOpen}
+              aria-controls="reading-more-options"
+              data-tooltip="Reading options"
+              title={readingMoreOpen ? 'Hide reading options' : 'More reading options'}
+              onClick={toggleReadingMore}
+            >
+              <ChevronDownIcon />
+            </motion.button>
+            <span className="sr-only" aria-live="polite">
+              {READING_LABELS[appearance]} reading mode, {TEMPERATURE_LABELS[temperature]} tone,{' '}
+              {Math.round(textScale * 100)}% text
+            </span>
+            <AnimatePresence initial={false}>
+              {readingMoreOpen && (
+                <motion.div
+                  layout
+                  id="reading-more-options"
+                  className="scene-toggle-more-panel reading-more-panel"
+                  role="group"
+                  aria-label="More reading options"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: swapDuration }}
+                >
+                  <span className="popover-caption">Tone</span>
+                  <div className="popover-row" role="radiogroup" aria-label="Reading tone">
+                    {READING_TEMPERATURES.map((option, index) => {
+                      const selected = temperature === option
+                      return (
+                        <button
+                          key={option}
+                          ref={(node) => {
+                            temperatureRefs.current[index] = node
+                          }}
+                          type="button"
+                          role="radio"
+                          aria-checked={selected}
+                          tabIndex={selected ? 0 : -1}
+                          className={`temperature-btn${selected ? ' is-active' : ''}`}
+                          title={`${TEMPERATURE_LABELS[option]} tone`}
+                          onClick={() => setTemperature(option)}
+                          onKeyDown={(event) => handleTemperatureKeyDown(event, index)}
+                        >
+                          {TEMPERATURE_LABELS[option]}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  <span className="scene-toggle-divider" aria-hidden="true" />
+                  <span className="popover-caption">Text size</span>
+                  <div className="popover-row">
+                    <button
+                      type="button"
+                      className="temperature-btn"
+                      aria-label="Smaller text"
+                      title="Smaller text"
+                      disabled={textScale === TEXT_SCALES[0]}
+                      onClick={() => stepTextScale(-1)}
+                    >
+                      A−
+                    </button>
+                    <span className="text-scale-value">{Math.round(textScale * 100)}%</span>
+                    <button
+                      type="button"
+                      className="temperature-btn"
+                      aria-label="Larger text"
+                      title="Larger text"
+                      disabled={textScale === TEXT_SCALES[TEXT_SCALES.length - 1]}
+                      onClick={() => stepTextScale(1)}
+                    >
+                      A+
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="scene"
+            layout
+            className="scene-toggle-panel"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: swapDuration }}
+          >
+            <AnimatePresence initial={false} mode="popLayout">
+              {SCENE_THEMES.map((theme) => {
+                if (collapsed && (moreOpen || sceneTheme !== theme)) return null
+                return sceneButton(theme)
+              })}
+              {collapsed && !moreOpen && isAuto && (
+                <motion.span
+                  key="auto-indicator"
+                  {...buttonMotion}
+                  className="scene-toggle-btn is-active"
+                  role="img"
+                  aria-label={activeTitle}
+                  data-tooltip={activeTitle}
+                  title={activeTitle}
+                >
+                  <AutoIcon />
+                </motion.span>
+              )}
+            </AnimatePresence>
+            <motion.button
+              layout
+              type="button"
+              className={`scene-toggle-btn scene-toggle-more${moreOpen ? ' is-open' : ''}`}
+              aria-label={moreOpen ? 'Hide scene options' : 'More scene options'}
+              aria-expanded={moreOpen}
+              aria-controls="scene-more-options"
+              data-tooltip={moreOpen ? 'Hide options' : 'More options'}
+              title={moreOpen ? 'Hide scene options' : 'More scene options'}
+              onClick={() =>
+                setMoreState((state) => ({
+                  mode: readingOn,
+                  open: !(state.mode === readingOn && state.open),
+                }))
+              }
+            >
+              <ChevronDownIcon />
+            </motion.button>
+            <AnimatePresence initial={false}>
+              {moreOpen && (
+                <motion.div
+                  layout
+                  id="scene-more-options"
+                  className="scene-toggle-more-panel"
+                  role="group"
+                  aria-label="More scene options"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: swapDuration }}
+                >
+                  {collapsed && SCENE_THEMES.map(sceneButton)}
+                  {collapsed && <span className="scene-toggle-divider" aria-hidden="true" />}
+                  <button
+                    type="button"
+                    className={`scene-toggle-btn is-auto${isAuto ? ' is-active' : ''}`}
+                    aria-label="Auto scene (follow local time)"
+                    aria-pressed={isAuto}
+                    data-tooltip="Auto — follow local time"
+                    title="Auto — follow local time"
+                    onClick={resetSceneThemeToAuto}
+                  >
+                    <AutoIcon />
+                  </button>
+                  <button
+                    type="button"
+                    className="scene-toggle-btn"
+                    aria-label="Randomize landscape"
+                    data-tooltip="Randomize landscape"
+                    title="Randomize landscape"
+                    onClick={onRandomize}
+                  >
+                    <ShuffleIcon />
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

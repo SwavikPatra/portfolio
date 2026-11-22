@@ -13,27 +13,33 @@ import type { GeneratedLandscape } from './landscapeGenerate'
  * prefers-reduced-motion: no scrubbing at all — pin to the final near state
  * (p = 1) so the camp is full size and fully coloured immediately.
  */
-export function useScrollProgress(): MotionValue<number> {
+export function useScrollProgress(frozen = false): MotionValue<number> {
   const reduced = useReducedMotion()
   const { scrollYProgress } = useScroll()
   const scrubbed = useSpring(scrollYProgress, CAMERA.scrub)
   const finalState = useMotionValue(1)
 
-  return reduced ? finalState : scrubbed
+  return reduced || frozen ? finalState : scrubbed
 }
 
 /**
  * Normalised pointer position in [-1, 1], lerped toward the real pointer
  * inside a single requestAnimationFrame loop (floaty, never jittery).
- * Disabled on touch devices and for prefers-reduced-motion.
+ * Disabled on touch devices, for prefers-reduced-motion and in read mode.
  */
-export function useMouseParallax(): { x: MotionValue<number>; y: MotionValue<number> } {
+export function useMouseParallax(
+  frozen = false,
+): { x: MotionValue<number>; y: MotionValue<number> } {
   const reduced = useReducedMotion()
   const x = useMotionValue(0)
   const y = useMotionValue(0)
 
   useEffect(() => {
-    if (reduced) return
+    if (reduced || frozen) {
+      x.set(0)
+      y.set(0)
+      return
+    }
     // pointer: coarse ≈ touch — spec says no mouse effect there.
     if (window.matchMedia('(pointer: coarse)').matches) return
 
@@ -63,7 +69,7 @@ export function useMouseParallax(): { x: MotionValue<number>; y: MotionValue<num
       window.removeEventListener('pointermove', onMove)
       cancelAnimationFrame(frame)
     }
-  }, [reduced, x, y])
+  }, [reduced, frozen, x, y])
 
   return useMemo(() => ({ x, y }), [x, y])
 }

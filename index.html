@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-reading-mode="off" data-reading-appearance="dark" data-reading-temperature="neutral" data-reading-text-scale="1">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
@@ -17,14 +17,23 @@
     />
     <script>
       (function () {
+        var root = document.documentElement
         try {
-          var stored = localStorage.getItem('portfolio-theme')
-          var theme =
-            stored ||
-            (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
-          document.documentElement.setAttribute('data-theme', theme)
+          root.setAttribute('data-reading-mode', localStorage.getItem('portfolio-reading-mode') === 'on' ? 'on' : 'off')
+          var appearance = localStorage.getItem('portfolio-reading-appearance')
+          if (appearance !== 'dark' && appearance !== 'light') {
+            appearance = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+          }
+          root.setAttribute('data-reading-appearance', appearance)
+          var temperature = localStorage.getItem('portfolio-reading-temperature')
+          root.setAttribute('data-reading-temperature', temperature === 'cool' || temperature === 'neutral' || temperature === 'warm' ? temperature : 'neutral')
+          var scale = Number(localStorage.getItem('portfolio-reading-text-scale'))
+          root.setAttribute('data-reading-text-scale', scale === 0.9 || scale === 1 || scale === 1.1 ? String(scale) : '1')
         } catch (e) {
-          document.documentElement.setAttribute('data-theme', 'dark')
+          root.setAttribute('data-reading-mode', 'off')
+          root.setAttribute('data-reading-appearance', 'dark')
+          root.setAttribute('data-reading-temperature', 'neutral')
+          root.setAttribute('data-reading-text-scale', '1')
         }
       })()
     </script>

@@ -19,23 +19,34 @@ function rnd(i: number, salt = 0) {
 
 const STAR_GROUPS = 8
 
-const METEOR_COUNT = 14
+const METEOR_COUNT = 6
+const METEOR_CYCLE = 20
 
-/** Night-only shower: each meteor loops on its own long cycle, with short,
- *  staggered delays so they arrive in bursts instead of a steady stream. */
+// One radiant direction keeps every streak parallel — a straight, shared path
+// rather than the sideways drift of per-meteor angles. Steep enough to read as
+// falling, not sliding across the sky.
+const METEOR_ANGLE = 124
+
+// Soft, muted head tints; the trail stays neutral so a pass never grabs focus.
+const METEOR_TINTS = ['#bcd6ff', '#ffd0a6', '#ffbcbc', '#d2c6ff', '#ffe3ad', '#bfe3dc'] as const
+
+/** Night-only shower: one long shared cycle with the meteors evenly spaced,
+ *  so a streak passes every few seconds instead of several at once. */
 function MeteorShower() {
   const groupRef = useRef<SVGGElement>(null)
 
   const meteors = useMemo(
     () =>
       Array.from({ length: METEOR_COUNT }, (_, i) => ({
-        x: 480 + rnd(i, 61) * 1000,
-        y: 20 + rnd(i, 62) * 280,
-        angle: 150 + rnd(i, 63) * 24,
-        length: 42 + rnd(i, 64) * 88,
-        cycle: 11 + rnd(i, 65) * 6,
-        delay: rnd(i, 66) * 4.5,
-        travel: 340 + rnd(i, 67) * 220,
+        x: 520 + rnd(i, 61) * 940,
+        y: 10 + rnd(i, 62) * 210,
+        angle: METEOR_ANGLE + (rnd(i, 63) - 0.5) * 4,
+        length: 90 + rnd(i, 64) * 80,
+        width: 0.8 + rnd(i, 68) * 0.5,
+        tint: METEOR_TINTS[i % METEOR_TINTS.length],
+        cycle: METEOR_CYCLE,
+        delay: (i / METEOR_COUNT) * METEOR_CYCLE + (rnd(i, 66) - 0.5) * 1.2,
+        travel: 300 + rnd(i, 67) * 160,
       })),
     [],
   )
@@ -52,6 +63,14 @@ function MeteorShower() {
 
   return (
     <g ref={groupRef} className="scene-meteors">
+      <defs>
+        {meteors.map((m, i) => (
+          <radialGradient key={i} id={`scene-meteor-head-${i}`}>
+            <stop offset="0%" stopColor={m.tint} stopOpacity={0.85} />
+            <stop offset="100%" stopColor={m.tint} stopOpacity={0} />
+          </radialGradient>
+        ))}
+      </defs>
       {meteors.map((m, i) => (
         <g
           key={i}
@@ -67,16 +86,12 @@ function MeteorShower() {
               } as CSSProperties
             }
           >
-            <line
-              x1={0}
-              y1={0}
-              x2={m.length}
-              y2={0}
-              stroke="url(#scene-meteor-grad)"
-              strokeWidth={2}
-              strokeLinecap="round"
+            <polygon
+              points={`0,0 ${m.length.toFixed(1)},${(-m.width).toFixed(1)} ${m.length.toFixed(1)},${m.width.toFixed(1)}`}
+              fill="url(#scene-meteor-grad)"
             />
-            <circle cx={m.length} cy={0} r={2.2} fill="var(--star)" />
+            <circle cx={m.length} cy={0} r={m.width * 5} fill={`url(#scene-meteor-head-${i})`} />
+            <circle cx={m.length} cy={0} r={1.5} fill={m.tint} />
           </g>
         </g>
       ))}

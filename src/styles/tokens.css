@@ -1,6 +1,7 @@
 /* ------------------------------------------------------------------
    Design tokens — single source of truth for theme, type and motion.
    Palette: near-black / warm off-white / one burnt-orange accent.
+   Dark is the site theme; light tokens apply only inside light reading mode.
 ------------------------------------------------------------------ */
 
 :root {
@@ -23,9 +24,7 @@
   --dur-slow: 520ms;
 
   --space-section: clamp(5rem, 10vw, 9rem);
-}
 
-[data-theme='dark'] {
   color-scheme: dark;
 
   --bg: #0e0e10;
@@ -52,7 +51,7 @@
   --focus-ring: rgba(226, 88, 47, 0.75);
 }
 
-[data-theme='light'] {
+html[data-reading-mode='on'][data-reading-appearance='light'] {
   color-scheme: light;
 
   --bg: #f6f3ee;
@@ -77,4 +76,64 @@
   --shadow: 0 18px 40px -28px rgba(30, 24, 18, 0.35);
 
   --focus-ring: rgba(184, 67, 31, 0.7);
+}
+
+html[data-reading-mode='on'][data-reading-appearance='light'][data-reading-temperature='cool'] {
+  --bg: #edf2f7;
+  --bg-raised: #e4ebf3;
+  --surface: #f7fafc;
+  --surface-2: #dbe4ee;
+  --border: #c9d6e3;
+  --border-strong: #afc0d1;
+
+  --text: #131a22;
+  --text-muted: #505e6d;
+  --text-faint: #637181;
+
+  --scrim: rgba(20, 32, 46, 0.35);
+}
+
+html[data-reading-mode='on'][data-reading-appearance='light'][data-reading-temperature='warm'] {
+  --bg: #f9f0df;
+  --bg-raised: #f2e6d1;
+  --surface: #fdf8ed;
+  --surface-2: #eddec6;
+  --border: #e1d0b6;
+  --border-strong: #cbb699;
+
+  --text: #1e1811;
+  --text-muted: #665540;
+  --text-faint: #7a6852;
+
+  --scrim: rgba(46, 32, 18, 0.38);
+}
+
+html[data-reading-mode='on'][data-reading-appearance='dark'][data-reading-temperature='cool'] {
+  --bg: #0d1117;
+  --bg-raised: #131922;
+  --surface: #181f2a;
+  --surface-2: #1e2733;
+  --border: #28323e;
+  --border-strong: #394656;
+
+  --text: #f1f5f9;
+  --text-muted: #c1cad5;
+  --text-faint: #a6b1be;
+
+  --scrim: rgba(6, 12, 20, 0.62);
+}
+
+html[data-reading-mode='on'][data-reading-appearance='dark'][data-reading-temperature='warm'] {
+  --bg: #13100d;
+  --bg-raised: #1b1612;
+  --surface: #221b16;
+  --surface-2: #2a211a;
+  --border: #35291f;
+  --border-strong: #493829;
+
+  --text: #f8f2e9;
+  --text-muted: #cdc0b0;
+  --text-faint: #b5a594;
+
+  --scrim: rgba(24, 14, 6, 0.62);
 }

@@ -6,24 +6,29 @@ import { SceneThemeContext } from './scene-theme-context'
 
 const STORAGE_KEY = 'portfolio-scene-theme'
 
-// Stored choice wins; otherwise start from the visitor's local clock.
-function readInitialTheme(): SceneThemeId {
+interface SceneThemeState {
+  theme: SceneThemeId
+  auto: boolean
+}
+
+// Stored choice wins; otherwise start from the visitor's local clock in auto mode.
+function readInitialState(): SceneThemeState {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored === 'morning' || stored === 'noon' || stored === 'sunset' || stored === 'night') {
-      return stored
+      return { theme: stored, auto: false }
     }
   } catch {
     // localStorage unavailable (private mode) — fall through to time-based.
   }
-  return hourToSceneTheme(new Date().getHours())
+  return { theme: hourToSceneTheme(new Date().getHours()), auto: true }
 }
 
 export function SceneThemeProvider({ children }: { children: ReactNode }) {
-  const [sceneTheme, setSceneThemeState] = useState<SceneThemeId>(readInitialTheme)
+  const [{ theme: sceneTheme, auto: isAuto }, setSceneState] = useState<SceneThemeState>(readInitialState)
 
   const setSceneTheme = useCallback((theme: SceneThemeId) => {
-    setSceneThemeState(theme)
+    setSceneState({ theme, auto: false })
     try {
       localStorage.setItem(STORAGE_KEY, theme)
     } catch {
@@ -32,36 +37,42 @@ export function SceneThemeProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const cycleSceneTheme = useCallback(() => {
-    setSceneThemeState((current) => {
-      const next = nextSceneTheme(current)
+    setSceneState((current) => {
+      const theme = nextSceneTheme(current.theme)
       try {
-        localStorage.setItem(STORAGE_KEY, next)
+        localStorage.setItem(STORAGE_KEY, theme)
       } catch {
         // Ignore persistence failures.
       }
-      return next
+      return { theme, auto: false }
     })
   }, [])
 
-  // If the visitor never chose manually we keep following their local time.
-  useEffect(() => {
+  const resetSceneThemeToAuto = useCallback(() => {
+    setSceneState({ theme: hourToSceneTheme(new Date().getHours()), auto: true })
     try {
-      if (localStorage.getItem(STORAGE_KEY)) return
+      localStorage.removeItem(STORAGE_KEY)
     } catch {
-      return
+      // Ignore persistence failures.
     }
+  }, [])
+
+  // Only auto mode keeps following the visitor's local clock.
+  useEffect(() => {
+    if (!isAuto) return
     const id = window.setInterval(() => {
-      setSceneThemeState((current) => {
+      setSceneState((current) => {
+        if (!current.auto) return current
         const byTime = hourToSceneTheme(new Date().getHours())
-        return byTime === current ? current : byTime
+        return byTime === current.theme ? current : { theme: byTime, auto: true }
       })
     }, 60_000)
     return () => window.clearInterval(id)
-  }, [])
+  }, [isAuto])
 
   const value = useMemo(
-    () => ({ sceneTheme, setSceneTheme, cycleSceneTheme }),
-    [sceneTheme, setSceneTheme, cycleSceneTheme],
+    () => ({ sceneTheme, isAuto, setSceneTheme, cycleSceneTheme, resetSceneThemeToAuto }),
+    [sceneTheme, isAuto, setSceneTheme, cycleSceneTheme, resetSceneThemeToAuto],
   )
 
   return <SceneThemeContext.Provider value={value}>{children}</SceneThemeContext.Provider>

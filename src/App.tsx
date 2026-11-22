@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { ThemeProvider } from './theme/ThemeContext'
+import { ReadModeProvider } from './theme/ReadModeContext'
 import Hero from './components/Hero'
 import TopBar from './components/TopBar'
 import SceneBackground from './scene/SceneBackground'
@@ -27,7 +27,7 @@ function ScrollToHash() {
 
 export default function App() {
   return (
-    <ThemeProvider>
+    <ReadModeProvider>
       <ScrollToHash />
       <SceneBackground />
       <div className="app">
@@ -51,6 +51,6 @@ export default function App() {
           </div>
         </footer>
       </div>
-    </ThemeProvider>
+    </ReadModeProvider>
   )
 }
