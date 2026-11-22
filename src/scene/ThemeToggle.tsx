@@ -75,6 +75,15 @@ function ChevronDownIcon() {
   )
 }
 
+function ToneIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2.6c3.4 3.8 7 7.5 7 11.2a7 7 0 1 1-14 0c0-3.7 3.6-7.4 7-11.2Z" />
+      <path d="M9.2 14.6a2.9 2.9 0 0 0 2.9 2.9" />
+    </svg>
+  )
+}
+
 // Reading icons deliberately differ from the sun/moon time-of-day glyphs.
 function ReadingDarkIcon() {
   return (
@@ -139,8 +148,14 @@ export default function ThemeToggle({ onRandomize }: ThemeToggleProps) {
   const temperatureRefs = useRef<(HTMLButtonElement | null)[]>([])
   const [moreState, setMoreState] = useState({ mode: false, open: false })
   const moreOpen = moreState.mode === readingOn && moreState.open
-  const [readingMoreState, setReadingMoreState] = useState({ mode: false, open: false })
-  const readingMoreOpen = readingMoreState.mode === readingOn && readingMoreState.open
+  const [readingMenuState, setReadingMenuState] = useState({ mode: false, open: false })
+  const readingMenuOpen = readingMenuState.mode === readingOn && readingMenuState.open
+  const [popoverState, setPopoverState] = useState<{
+    mode: boolean
+    value: 'tone' | 'text' | null
+  }>({ mode: false, value: null })
+  const readingPopover =
+    readingMenuOpen && popoverState.mode === readingOn ? popoverState.value : null
   const [collapsed, setCollapsed] = useState(false)
 
   useEffect(() => {
@@ -158,32 +173,42 @@ export default function ThemeToggle({ onRandomize }: ThemeToggleProps) {
   }, [])
 
   useEffect(() => {
-    if (!moreOpen && !readingMoreOpen) return
+    if (!moreOpen && !readingMenuOpen && !readingPopover) return
     const onKeyDown = (event: globalThis.KeyboardEvent) => {
       if (event.key !== 'Escape') return
       setMoreState((state) => ({ ...state, open: false }))
-      setReadingMoreState((state) => ({ ...state, open: false }))
+      setReadingMenuState((state) => ({ ...state, open: false }))
+      setPopoverState((state) => ({ ...state, value: null }))
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [moreOpen, readingMoreOpen])
+  }, [moreOpen, readingMenuOpen, readingPopover])
 
   useEffect(() => {
-    if (!moreOpen && !readingMoreOpen) return
+    if (!moreOpen && !readingMenuOpen && !readingPopover) return
     const onPointerDown = (event: globalThis.PointerEvent) => {
       if (barRef.current?.contains(event.target as Node)) return
       setMoreState((state) => ({ ...state, open: false }))
-      setReadingMoreState((state) => ({ ...state, open: false }))
+      setReadingMenuState((state) => ({ ...state, open: false }))
+      setPopoverState((state) => ({ ...state, value: null }))
     }
     document.addEventListener('pointerdown', onPointerDown)
     return () => document.removeEventListener('pointerdown', onPointerDown)
-  }, [moreOpen, readingMoreOpen])
+  }, [moreOpen, readingMenuOpen, readingPopover])
 
-  const toggleReadingMore = () => {
-    setReadingMoreState((state) => ({
+  const toggleReadingMenu = () => {
+    setReadingMenuState((state) => ({
       mode: readingOn,
       open: !(state.mode === readingOn && state.open),
     }))
+    setPopoverState((state) => ({ ...state, value: null }))
+  }
+
+  const togglePopover = (value: 'tone' | 'text') => {
+    setPopoverState((state) => {
+      const current = state.mode === readingOn ? state.value : null
+      return { mode: readingOn, value: current === value ? null : value }
+    })
   }
 
   const handleAppearanceKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
@@ -285,26 +310,22 @@ export default function ThemeToggle({ onRandomize }: ThemeToggleProps) {
             <motion.button
               layout
               type="button"
-              className={`scene-toggle-btn scene-toggle-more${readingMoreOpen ? ' is-open' : ''}`}
-              aria-label={readingMoreOpen ? 'Hide reading options' : 'More reading options'}
-              aria-expanded={readingMoreOpen}
+              className={`scene-toggle-btn scene-toggle-more${readingMenuOpen ? ' is-open' : ''}`}
+              aria-label={readingMenuOpen ? 'Hide reading options' : 'More reading options'}
+              aria-expanded={readingMenuOpen}
               aria-controls="reading-more-options"
-              data-tooltip="Reading options"
-              title={readingMoreOpen ? 'Hide reading options' : 'More reading options'}
-              onClick={toggleReadingMore}
+              data-tooltip={readingMenuOpen ? 'Hide options' : 'More options'}
+              title={readingMenuOpen ? 'Hide reading options' : 'More reading options'}
+              onClick={toggleReadingMenu}
             >
               <ChevronDownIcon />
             </motion.button>
-            <span className="sr-only" aria-live="polite">
-              {READING_LABELS[appearance]} reading mode, {TEMPERATURE_LABELS[temperature]} tone,{' '}
-              {Math.round(textScale * 100)}% text
-            </span>
             <AnimatePresence initial={false}>
-              {readingMoreOpen && (
+              {readingMenuOpen && (
                 <motion.div
                   layout
                   id="reading-more-options"
-                  className="scene-toggle-more-panel reading-more-panel"
+                  className="scene-toggle-more-panel"
                   role="group"
                   aria-label="More reading options"
                   initial={{ opacity: 0 }}
@@ -312,31 +333,83 @@ export default function ThemeToggle({ onRandomize }: ThemeToggleProps) {
                   exit={{ opacity: 0 }}
                   transition={{ duration: swapDuration }}
                 >
-                  <span className="popover-caption">Tone</span>
-                  <div className="popover-row" role="radiogroup" aria-label="Reading tone">
-                    {READING_TEMPERATURES.map((option, index) => {
-                      const selected = temperature === option
-                      return (
-                        <button
-                          key={option}
-                          ref={(node) => {
-                            temperatureRefs.current[index] = node
-                          }}
-                          type="button"
-                          role="radio"
-                          aria-checked={selected}
-                          tabIndex={selected ? 0 : -1}
-                          className={`temperature-btn${selected ? ' is-active' : ''}`}
-                          title={`${TEMPERATURE_LABELS[option]} tone`}
-                          onClick={() => setTemperature(option)}
-                          onKeyDown={(event) => handleTemperatureKeyDown(event, index)}
-                        >
-                          {TEMPERATURE_LABELS[option]}
-                        </button>
-                      )
-                    })}
-                  </div>
-                  <span className="scene-toggle-divider" aria-hidden="true" />
+                  <button
+                    type="button"
+                    className={`scene-toggle-btn${readingPopover === 'tone' ? ' is-active' : ''}`}
+                    aria-label="Reading tone"
+                    aria-expanded={readingPopover === 'tone'}
+                    aria-controls="reading-tone-options"
+                    data-tooltip="Tone"
+                    title="Reading tone"
+                    onClick={() => togglePopover('tone')}
+                  >
+                    <ToneIcon />
+                  </button>
+                  <button
+                    type="button"
+                    className={`scene-toggle-btn${readingPopover === 'text' ? ' is-active' : ''}`}
+                    aria-label="Text size"
+                    aria-expanded={readingPopover === 'text'}
+                    aria-controls="reading-text-options"
+                    data-tooltip="Text size"
+                    title="Text size"
+                    onClick={() => togglePopover('text')}
+                  >
+                    <span className="text-size-glyph">Aa</span>
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <span className="sr-only" aria-live="polite">
+              {READING_LABELS[appearance]} reading mode, {TEMPERATURE_LABELS[temperature]} tone,{' '}
+              {Math.round(textScale * 100)}% text
+            </span>
+            <AnimatePresence initial={false}>
+              {readingPopover === 'tone' && (
+                <motion.div
+                  id="reading-tone-options"
+                  className="scene-toggle-popover"
+                  role="radiogroup"
+                  aria-label="Reading tone"
+                  initial={{ opacity: 0, x: 6, scale: 0.96 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: 6, scale: 0.96 }}
+                  transition={{ duration: swapDuration }}
+                >
+                  {READING_TEMPERATURES.map((option, index) => {
+                    const selected = temperature === option
+                    return (
+                      <button
+                        key={option}
+                        ref={(node) => {
+                          temperatureRefs.current[index] = node
+                        }}
+                        type="button"
+                        role="radio"
+                        aria-checked={selected}
+                        tabIndex={selected ? 0 : -1}
+                        className={`temperature-btn${selected ? ' is-active' : ''}`}
+                        title={`${TEMPERATURE_LABELS[option]} tone`}
+                        onClick={() => setTemperature(option)}
+                        onKeyDown={(event) => handleTemperatureKeyDown(event, index)}
+                      >
+                        {TEMPERATURE_LABELS[option]}
+                      </button>
+                    )
+                  })}
+                </motion.div>
+              )}
+              {readingPopover === 'text' && (
+                <motion.div
+                  id="reading-text-options"
+                  className="scene-toggle-popover"
+                  role="group"
+                  aria-label="Text size"
+                  initial={{ opacity: 0, x: 6, scale: 0.96 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: 6, scale: 0.96 }}
+                  transition={{ duration: swapDuration }}
+                >
                   <span className="popover-caption">Text size</span>
                   <div className="popover-row">
                     <button
