@@ -19,6 +19,20 @@
   transition: none !important;
 }
 
+/* In dark reading mode the moon settles back into the night sky instead of
+   pulling focus from the text. Light reading mode keeps the normal moon. */
+[data-reading-mode='on'][data-reading-appearance='dark'] .scene-moon-disc {
+  fill: #6b7894;
+}
+
+[data-reading-mode='on'][data-reading-appearance='dark'] .scene-moon-crater {
+  fill: rgba(28, 36, 56, 0.25);
+}
+
+[data-reading-mode='on'][data-reading-appearance='dark'] .scene-moon-glow {
+  opacity: 0.15;
+}
+
 html[data-reading-mode='on'][data-reading-text-scale='0.9'] {
   font-size: 90%;
 }

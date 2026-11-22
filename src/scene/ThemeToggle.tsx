@@ -234,14 +234,20 @@ export default function ThemeToggle({ onRandomize }: ThemeToggleProps) {
   }
 
   const swapDuration = reducedMotion ? 0 : 0.18
+  const layoutSpring = reducedMotion
+    ? { duration: 0 }
+    : { type: 'spring' as const, stiffness: 380, damping: 26, mass: 0.8 }
   const activeTitle = isAuto ? 'Auto scene (follow local time)' : `${LABELS[sceneTheme]} scene`
 
   const buttonMotion = {
-    layout: true,
-    initial: { opacity: 0, scale: 0.75 },
+    layout: 'position' as const,
+    initial: { opacity: 0, scale: 0.9 },
     animate: { opacity: 1, scale: 1 },
-    exit: { opacity: 0, scale: 0.75 },
-    transition: { duration: swapDuration },
+    exit: { opacity: 0, scale: 0.9 },
+    transition: {
+      duration: swapDuration,
+      layout: layoutSpring,
+    },
   }
 
   const sceneButton = (theme: SceneThemeId) => {
@@ -307,19 +313,6 @@ export default function ThemeToggle({ onRandomize }: ThemeToggleProps) {
                 )
               })}
             </div>
-            <motion.button
-              layout
-              type="button"
-              className={`scene-toggle-btn scene-toggle-more${readingMenuOpen ? ' is-open' : ''}`}
-              aria-label={readingMenuOpen ? 'Hide reading options' : 'More reading options'}
-              aria-expanded={readingMenuOpen}
-              aria-controls="reading-more-options"
-              data-tooltip={readingMenuOpen ? 'Hide options' : 'More options'}
-              title={readingMenuOpen ? 'Hide reading options' : 'More reading options'}
-              onClick={toggleReadingMenu}
-            >
-              <ChevronDownIcon />
-            </motion.button>
             <AnimatePresence initial={false}>
               {readingMenuOpen && (
                 <motion.div
@@ -329,9 +322,8 @@ export default function ThemeToggle({ onRandomize }: ThemeToggleProps) {
                   role="group"
                   aria-label="More reading options"
                   initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: swapDuration }}
+                  animate={{ opacity: 1, transition: { duration: swapDuration, delay: swapDuration } }}
+                  exit={{ opacity: 0, transition: { duration: swapDuration } }}
                 >
                   <button
                     type="button"
@@ -360,6 +352,20 @@ export default function ThemeToggle({ onRandomize }: ThemeToggleProps) {
                 </motion.div>
               )}
             </AnimatePresence>
+            <motion.button
+              layout
+              transition={{ layout: { duration: swapDuration, ease: 'easeInOut' } }}
+              type="button"
+              className={`scene-toggle-btn scene-toggle-more${readingMenuOpen ? ' is-open' : ''}`}
+              aria-label={readingMenuOpen ? 'Hide reading options' : 'More reading options'}
+              aria-expanded={readingMenuOpen}
+              aria-controls="reading-more-options"
+              data-tooltip={readingMenuOpen ? 'Hide options' : 'More options'}
+              title={readingMenuOpen ? 'Hide reading options' : 'More reading options'}
+              onClick={toggleReadingMenu}
+            >
+              <ChevronDownIcon />
+            </motion.button>
             <span className="sr-only" aria-live="polite">
               {READING_LABELS[appearance]} reading mode, {TEMPERATURE_LABELS[temperature]} tone,{' '}
               {Math.round(textScale * 100)}% text
@@ -446,7 +452,7 @@ export default function ThemeToggle({ onRandomize }: ThemeToggleProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: swapDuration }}
+            transition={{ duration: swapDuration, layout: layoutSpring }}
           >
             <AnimatePresence initial={false} mode="popLayout">
               {SCENE_THEMES.map((theme) => {
@@ -467,24 +473,6 @@ export default function ThemeToggle({ onRandomize }: ThemeToggleProps) {
                 </motion.span>
               )}
             </AnimatePresence>
-            <motion.button
-              layout
-              type="button"
-              className={`scene-toggle-btn scene-toggle-more${moreOpen ? ' is-open' : ''}`}
-              aria-label={moreOpen ? 'Hide scene options' : 'More scene options'}
-              aria-expanded={moreOpen}
-              aria-controls="scene-more-options"
-              data-tooltip={moreOpen ? 'Hide options' : 'More options'}
-              title={moreOpen ? 'Hide scene options' : 'More scene options'}
-              onClick={() =>
-                setMoreState((state) => ({
-                  mode: readingOn,
-                  open: !(state.mode === readingOn && state.open),
-                }))
-              }
-            >
-              <ChevronDownIcon />
-            </motion.button>
             <AnimatePresence initial={false}>
               {moreOpen && (
                 <motion.div
@@ -494,9 +482,8 @@ export default function ThemeToggle({ onRandomize }: ThemeToggleProps) {
                   role="group"
                   aria-label="More scene options"
                   initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: swapDuration }}
+                  animate={{ opacity: 1, transition: { duration: swapDuration, delay: swapDuration } }}
+                  exit={{ opacity: 0, transition: { duration: swapDuration } }}
                 >
                   {collapsed && SCENE_THEMES.map(sceneButton)}
                   {collapsed && <span className="scene-toggle-divider" aria-hidden="true" />}
@@ -524,6 +511,25 @@ export default function ThemeToggle({ onRandomize }: ThemeToggleProps) {
                 </motion.div>
               )}
             </AnimatePresence>
+            <motion.button
+              layout
+              transition={{ layout: { duration: swapDuration, ease: 'easeInOut' } }}
+              type="button"
+              className={`scene-toggle-btn scene-toggle-more${moreOpen ? ' is-open' : ''}`}
+              aria-label={moreOpen ? 'Hide scene options' : 'More scene options'}
+              aria-expanded={moreOpen}
+              aria-controls="scene-more-options"
+              data-tooltip={moreOpen ? 'Hide options' : 'More options'}
+              title={moreOpen ? 'Hide scene options' : 'More scene options'}
+              onClick={() =>
+                setMoreState((state) => ({
+                  mode: readingOn,
+                  open: !(state.mode === readingOn && state.open),
+                }))
+              }
+            >
+              <ChevronDownIcon />
+            </motion.button>
           </motion.div>
         )}
       </AnimatePresence>

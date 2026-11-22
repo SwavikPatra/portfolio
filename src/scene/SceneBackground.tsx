@@ -46,6 +46,10 @@ function SceneArt({
             <stop offset="0%" style={{ stopColor: 'var(--sun-glow)' }} />
             <stop offset="100%" style={{ stopColor: 'var(--sun-glow)', stopOpacity: 0 }} />
           </radialGradient>
+          <radialGradient id="scene-moon-glow-grad">
+            <stop offset="0%" stopColor="rgba(220, 233, 255, 0.6)" />
+            <stop offset="100%" stopColor="rgba(220, 233, 255, 0)" />
+          </radialGradient>
           <radialGradient id="scene-mist-grad">
             <stop offset="0%" style={{ stopColor: 'var(--mist)' }} />
             <stop offset="55%" style={{ stopColor: 'var(--mist)', stopOpacity: 0.55 }} />

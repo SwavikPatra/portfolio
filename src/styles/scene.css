@@ -119,8 +119,45 @@
   transition: stop-color 1s linear;
 }
 
+/* Sun + moon ride one elliptical arc: left horizon (0%), crown (50%), right
+   horizon (100%). --sun-t / --moon-t are registered numbers, so transitioning
+   the single value and mapping it through sin/cos glides each body along the
+   curve — the sun down on the right, the moon up on the left — instead of
+   cutting straight across the sky. */
+@property --sun-t {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 26;
+}
+@property --moon-t {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+.scene-sun,
+.scene-moon {
+  will-change: transform, opacity;
+}
+
 .scene-sun {
-  transition: transform 1s var(--ease);
+  transform: translate(
+    calc(720px + 560px * cos((100 - var(--sun-t)) * 3.14159265 / 100)),
+    calc(710px - 570px * sin((100 - var(--sun-t)) * 3.14159265 / 100))
+  );
+  transition:
+    --sun-t 1.4s var(--ease),
+    opacity 1s linear;
+}
+
+.scene-moon {
+  transform: translate(
+    calc(720px + 560px * cos((100 - var(--moon-t)) * 3.14159265 / 100)),
+    calc(674px - 570px * sin((100 - var(--moon-t)) * 3.14159265 / 100))
+  );
+  transition:
+    --moon-t 1.4s var(--ease),
+    opacity 1s linear;
 }
 
 .scene-sun-disc {
@@ -130,6 +167,19 @@
 
 .scene-sun-glow {
   fill: url(#scene-sun-glow-grad);
+}
+
+/* The moon keeps a constant cool white — it is only ever visible at night. */
+.scene-moon-disc {
+  fill: #ffffff;
+}
+
+.scene-moon-crater {
+  fill: rgba(122, 143, 184, 0.22);
+}
+
+.scene-moon-glow {
+  fill: url(#scene-moon-glow-grad);
 }
 
 /* Atmospheric perspective: far layers are tinted toward --haze at p=0 and

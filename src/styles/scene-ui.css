@@ -27,8 +27,7 @@
   height: 30px;
   border-radius: var(--radius-full);
   color: var(--text-faint);
-  transition: color var(--dur) var(--ease), background-color var(--dur) var(--ease),
-    transform var(--dur) var(--ease);
+  transition: color var(--dur) var(--ease), background-color var(--dur) var(--ease);
 }
 
 .scene-toggle-btn:hover {
@@ -177,6 +176,10 @@
   height: 1px;
   margin: 2px 6px;
   background: var(--border);
+}
+
+.scene-toggle-more.is-open {
+  background: color-mix(in srgb, var(--surface-2) 75%, transparent);
 }
 
 .scene-toggle-more svg {
